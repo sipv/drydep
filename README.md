@@ -27,6 +27,9 @@ model for aerosols onto broadleaf canopies. J. Aerosol Sci., 2009, 40, 218-240.
 of particles by windbreaks. Atmos. Environ., 2001, 35, 3373-3383.
 [4] Bruse, M. Particle Filtering Capacity of Urban Vegetation: a Microscale
 Numerical Approach. Berliner Geographische Arbeiten, 2007, 109, 61-70.
+[5] Šíp, V. Numerical simulation of microscale atmospheric flows and pollution
+dispersion. Dissertation thesis. Czech Technical University in Prague, 2016.
+
 
 
 License

@@ -14,6 +14,7 @@ properties of the vegetation, and the properties of the particles.
 """
 
 from math import exp, pi, sqrt, log
+import numpy as np
 
 # Constants
 KB = 1.3806488e-23   # Boltzmann constant
@@ -169,6 +170,126 @@ class PetroffModel(DepVelModel):
                 + self.impaction()
                 + self.turbulent_impaction())
 
+class ApprxPetroffModel(DepVelModel):
+    """Approximated Petroff model described in (Sip, 2016).
+
+    Parameters:
+        environ: 'mu', 'rho', 'u', 'uf'
+        particle: 'd', 'rho'
+        vegetation: 'de', 'leafType', 'leafDist'
+    """
+
+    def __init__(self, environ, particle, vegetation):
+        self.mua = environ["mu"]
+        self.rhoa = environ["rho"]
+        self.nua = self.mua/self.rhoa
+        self.u = environ["u"]
+        self.uf = environ["uf"]
+
+        self.set_veget_params(vegetation)
+
+        self.dp = particle["d"]
+        self.rhop = particle["rho"]
+
+        # Settling velocity
+        self.us = settling_velocity(environ, particle)
+
+        self.environ = environ
+        self.particle = particle
+
+        sti = np.array([1e-2, 1e-1, 1e0, 1e1, 1e2])
+        ei = (sti/(sti + self.beta))**2
+        self.iim_fun = lambda x: np.interp(x, sti, ei, left=0.0, right=1.0)
+
+    @classmethod
+    def get_components(cls):
+        return ["total", "brownian_diffusion", "sedimentation", "interception",
+                "impaction", "turbulent_impaction"]
+
+    def set_veget_params(self, vegetation):
+        self.de = vegetation["de"]
+        self.leaf_type = vegetation["leafType"]
+        leaf_dist = vegetation["leafDist"]
+
+        dist_needle = {"horizontal":  (2./pi**2, 1./pi),
+                       "plagiophile": (0.27,     0.22),
+                       "vertical":    (1./pi,    0.),
+                       "uniform":     (0.27,     2./pi**2)}
+
+        dist_broadleaf = {"horizontal":  (0.,      0.5),
+                          "plagiophile": (0.216,   0.340),
+                          "vertical":    (1./pi,   0.),
+                          "uniform":     (2/pi**2, 1./pi)}
+
+        if self.leaf_type == "needle":
+            self.kx, self.kz = dist_needle[leaf_dist]
+            self.Cb = 0.467
+            self.beta = 0.6
+        elif self.leaf_type == "broadleaf":
+            self.kx, self.kz = dist_broadleaf[leaf_dist]
+            self.Cb = 0.664
+            self.beta = 0.47
+        else:
+            raise ValueError("Unknown leafType %s" % self.leaf_type)
+
+    def brownian_diffusion(self):
+        """Brownian diffusion"""
+        Re = self.u*self.de/self.nua
+        nb = 0.5
+        Cc = 3.34*LAMBD/self.dp
+        DB = (KB*self.environ["T"]*Cc)/(3*pi*self.mua*self.dp)
+        Sc = self.nua/DB
+        return 2*self.u*self.Cb*(Sc**(-2./3.))*(Re**(nb - 1))
+
+    def sedimentation(self):
+        """Sedimentation"""
+        return 2*self.kz*self.us
+
+    def interception(self):
+        """Interception"""
+        if self.leaf_type == "needle":
+            return 2*(2*self.u*self.kx*(self.dp/self.de))
+        elif self.leaf_type == "broadleaf":
+            a = 4.57
+            b = -0.078
+            return 2*(self.u*self.kx/2.0*(self.dp/self.de)
+                      *(2.0 + log(4.0*self.de) + a*self.dp**b))
+        else:
+            raise ValueError("Unknown leafType %s" % self.leaf_type)
+
+    def impaction(self):
+        """Impaction"""
+        Cc = 1.0
+        tauP = self.rhop*Cc*(self.dp**2)/(18.0*self.mua)
+        St = self.u*tauP/self.de
+        IIm = self.iim_fun(St)
+        vIm = self.u*self.kx*IIm
+        return 2*vIm
+
+    def turbulent_impaction(self):
+        """Turbulent impaction"""
+        kIT1 = 3.5e-4
+        kIT2 = 0.18
+
+        Cc = slip_correction_factor(self.dp)
+        tauP = self.rhop*Cc*(self.dp**2)/(18.0*self.mua)
+
+        tauPPlus = tauP * self.uf**2 / self.nua
+
+        if tauPPlus <= 20:
+            return 2 * self.uf * kIT1 * tauPPlus**2
+        else:
+            return 2 * self.uf * kIT2
+
+    def total(self):
+        """Total deposition velocity"""
+        return (self.brownian_diffusion()
+                + self.sedimentation()
+                + self.interception()
+                + self.impaction()
+                + self.turbulent_impaction())
+
+
 class RaupachModel(DepVelModel):
     """Deposition velocity model used in (Raupach et al, 2001).
 
@@ -275,6 +396,7 @@ class BruseModel(DepVelModel):
 # Available models
 MODELS = {
     "Petroff": PetroffModel,
+    "ApprxPetroff": ApprxPetroffModel,
     "Raupach": RaupachModel,
     "Bruse": BruseModel
 }
