@@ -17,20 +17,18 @@ Usage examples are given in the [Jupyter notebook](examples.ipynb).
 
 Literature
 ----------
-Relevant literature:
+Relevant literature:  
 [1] Petroff, A.; Mailliat, A.; Amielh, M. & Anselmet, F. Aerosol dry deposition
 on vegetative canopies. Part II: A new modelling approach and applications.
-Atmos. Environ., 2008, 42, 3654-3683.
+Atmos. Environ., 2008, 42, 3654-3683.  
 [2] Petroff, A.; Zhang, L.; Pryor, S. & Belot, Y. An extended dry deposition
-model for aerosols onto broadleaf canopies. J. Aerosol Sci., 2009, 40, 218-240.
+model for aerosols onto broadleaf canopies. J. Aerosol Sci., 2009, 40, 218-240.  
 [3] Raupach, M.; Woods, N.; Dorr, G.; Leys, J. & Cleugh, H. The entrapment
-of particles by windbreaks. Atmos. Environ., 2001, 35, 3373-3383.
+of particles by windbreaks. Atmos. Environ., 2001, 35, 3373-3383.  
 [4] Bruse, M. Particle Filtering Capacity of Urban Vegetation: a Microscale
-Numerical Approach. Berliner Geographische Arbeiten, 2007, 109, 61-70.
+Numerical Approach. Berliner Geographische Arbeiten, 2007, 109, 61-70.  
 [5] Šíp, V. Numerical simulation of microscale atmospheric flows and pollution
-dispersion. Dissertation thesis. Czech Technical University in Prague, 2016.
-
-
+dispersion. Dissertation thesis. Czech Technical University in Prague, 2016.  
 
 License
 -------
