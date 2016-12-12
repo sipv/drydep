@@ -321,7 +321,7 @@ class RaupachModel(DepVelModel):
 
     def brownian_diffusion(self):
         """Brownian diffusion"""
-        Cpol = 1.32  # Polhausen coeffient
+        Cpol = 1.32/2  # Polhausen coeffient
         Re = self.u*self.de/self.nua
         gpb = 2*self.u*Cpol*(Re**-0.5)*(self.Sc**(-2./3.))
         return gpb
